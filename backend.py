@@ -32,4 +32,54 @@ def connect():
     con.commit()
     con.close()
 
+
+def add_line(amount, category_id, description):
+    con = sqlite3.connect("personal_finance.db")
+    cur = con.cursor()
+    cur.execute("INSERT INTO account VALUES (NULL,?,?,?)", (amount, category_id, description))
+    con.commit()
+    con.close()
+
+
+def view():
+    con = sqlite3.connect("personal_finance.db")
+    cur = con.cursor()
+    cur.execute("SELECT * FROM account")
+    rows = cur.fetchall()
+    con.close()
+    return rows
+
+
+def search(amount="", category_id="", description=""):
+    con = sqlite3.connect("personal_finance.db")
+    cur = con.cursor()
+    #TODO: more intelligent description search (find substrings)?
+    cur.execute("SELECT * FROM account WHERE amount=? OR category_id=? OR description=?", (amount, category_id, description))
+    rows = cur.fetchall()
+    con.close()
+    return rows
+
+
+def delete_line(id):
+    con = sqlite3.connect("personal_finance.db")
+    cur = con.cursor()
+    cur.execute("DELETE FROM account WHERE id=?", (id,))
+    con.commit()
+    con.close()
+
+
+def modify_line(id, amount, category_id, description):
+    con = sqlite3.connect("personal_finance.db")
+    cur = con.cursor()
+    cur.execute("UPDATE account SET amount=?, category_id=?, description=? WHERE id=?", (amount, category_id, description, id))
+    con.commit()
+    con.close()
+
+#TODO: update config button backend code (update row)
+#TODO: add/remove/update categories backend code
+#TODO: date for lines
+
+#def close():
+    #main_window.destroy()
+
 connect()
