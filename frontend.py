@@ -37,6 +37,7 @@ Close application
 
 # import everything from tkinter library
 from tkinter import *
+import backend
 
 # tkinter instance
 main_window = Tk()
@@ -86,23 +87,23 @@ scroll1.configure(command=list1.yview)
 b1 = Button(main_window, text="Configure", width=10)
 b1.grid(row=1, column=7)
 
-b1 = Button(main_window, text="Add", width=10)
-b1.grid(row=2, column=7)
+b2 = Button(main_window, text="Add", width=10)
+b2.grid(row=2, column=7)
 
-b1 = Button(main_window, text="Modify", width=10)
-b1.grid(row=3, column=7)
+b3 = Button(main_window, text="Modify", width=10)
+b3.grid(row=3, column=7)
 
-b1 = Button(main_window, text="Search", width=10)
-b1.grid(row=4, column=7)
+b4 = Button(main_window, text="Search", width=10)
+b4.grid(row=4, column=7)
 
-b1 = Button(main_window, text="New Month", width=10)
-b1.grid(row=5, column=7)
+b5 = Button(main_window, text="New Month", width=10)
+b5.grid(row=5, column=7)
 
-b1 = Button(main_window, text="Delete", width=10)
-b1.grid(row=6, column=7)
+b6 = Button(main_window, text="Delete", width=10)
+b6.grid(row=6, column=7)
 
-b1 = Button(main_window, text="Close", width=10)
-b1.grid(row=7, column=7)
+b7 = Button(main_window, text="Close", width=10)
+b7.grid(row=7, column=7)
 
 # keep window open
 main_window.mainloop()
