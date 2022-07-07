@@ -37,6 +37,7 @@ Close application
 
 # import everything from tkinter library
 from tkinter import *
+import backend
 
 # tkinter instance
 main_window = Tk()
@@ -171,9 +172,15 @@ t4 = Text(main_window, height=1, width=15)
 t4.grid(row=0, column=7)
 t4.configure(state="disabled")
 
+#TODO: better listbox with columns
+
 # listbox and scrollbar
 list1 = Listbox(main_window, height=40, width=120)
 list1.grid(row=1, column=0, rowspan=48, columnspan=6)
+
+# load list items
+for row in backend.view():
+    list1.insert(END, row)
 
 scroll1 = Scrollbar(main_window)
 scroll1.grid(row=1, column=6, rowspan=48)
@@ -194,14 +201,22 @@ b3.grid(row=3, column=7)
 b4 = Button(main_window, text="Search", width=10, command=open_search)
 b4.grid(row=4, column=7)
 
-b1 = Button(main_window, text="New Month", width=10)
-b1.grid(row=5, column=7)
+b5 = Button(main_window, text="New Month", width=10)
+b5.grid(row=5, column=7)
 
-b1 = Button(main_window, text="Delete", width=10)
-b1.grid(row=6, column=7)
+b6 = Button(main_window, text="Delete", width=10)
+b6.grid(row=6, column=7)
 
 b7 = Button(main_window, text="Close", width=10, command=main_window.destroy)
 b7.grid(row=7, column=7)
+
+#TODO: refresh button for list items?
+#def view_command():
+    #list1.delete(0,END)
+    #for row in backend.view():
+        #list1.insert(END, row)
+#8 = Button(main_window, text="Refresh", width=10)
+#8.grid(row=8, column=7)
 
 # keep window open
 main_window.mainloop()
