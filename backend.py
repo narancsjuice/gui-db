@@ -13,13 +13,14 @@ def connect():
                 " symbol TEXT,"
                 " income INTEGER)")
 
-    #TODO: insert default into config
+    #TODO: insert default into config or create table with default values
 
     # spendings categories table
     cur.execute("CREATE TABLE IF NOT EXISTS"
                 " categories "
                 "(id INTEGER PRIMARY KEY,"
-                " category TEXT)")
+                " category TEXT,"
+                " type INTEGER)")
 
     # spendings/savings table
     cur.execute("CREATE TABLE IF NOT EXISTS"
