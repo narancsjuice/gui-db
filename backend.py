@@ -1,17 +1,27 @@
 import sqlite3
 
+#TODO: new function that send leftover to savings, resets income
+#TODO: every spending, saving, money calculation should show the symbol
 
 def connect():
     con = sqlite3.connect("personal_finance.db")
     cur = con.cursor()
 
+    #TODO: income to decimal, savings as decimal
+    #TODO: income is nullable, in later calculation this should be handled if the user has no income
+
     # config table
     cur.execute("CREATE TABLE IF NOT EXISTS"
                 " config "
                 "(id INTEGER PRIMARY KEY,"
-                " currency TEXT,"
-                " symbol TEXT,"
+                " currency TEXT NOT NULL,"
+                " symbol TEXT NOT NULL,"
                 " income INTEGER)")
+
+    # inserting default value
+    cur.execute("INSERT INTO config(id, currency, symbol, income)"
+                " SELECT 1, 'Hungarian Forint', 'HUF', 350000"
+                " WHERE NOT EXISTS (SELECT * FROM config WHERE id = 1)")
 
     #TODO: insert default into config or create table with default values
 
@@ -21,6 +31,8 @@ def connect():
                 "(id INTEGER PRIMARY KEY,"
                 " category TEXT,"
                 " type INTEGER)")
+
+    #TODO: use dates for lines
 
     # spendings/savings table
     cur.execute("CREATE TABLE IF NOT EXISTS"
@@ -42,7 +54,7 @@ def add_line(amount, category_id, description):
     con.close()
 
 
-def view():
+def view_lines():
     con = sqlite3.connect("personal_finance.db")
     cur = con.cursor()
     cur.execute("SELECT * FROM account")
@@ -51,7 +63,16 @@ def view():
     return rows
 
 
-def search(amount="", category_id="", description=""):
+def view_config():
+    con = sqlite3.connect("personal_finance.db")
+    cur = con.cursor()
+    cur.execute("SELECT * FROM config")
+    rows = cur.fetchall()
+    con.close()
+    return rows
+
+
+def search_line(amount="", category_id="", description=""):
     con = sqlite3.connect("personal_finance.db")
     cur = con.cursor()
     #TODO: more intelligent description search (find substrings)?
@@ -76,11 +97,15 @@ def modify_line(id, amount, category_id, description):
     con.commit()
     con.close()
 
-#TODO: update config button backend code (update row)
-#TODO: add/remove/update categories backend code
-#TODO: date for lines
 
-#def close():
-    #main_window.destroy()
+def modify_config(currency, symbol, income):
+    con = sqlite3.connect("personal_finance.db")
+    cur = con.cursor()
+    cur.execute("UPDATE config SET currency=?, symbol=?, income=? WHERE id=1", (currency, symbol, income))
+    con.commit()
+    con.close()
+
+#TODO: add/remove/update categories backend code
+
 
 connect()
