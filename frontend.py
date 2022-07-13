@@ -107,6 +107,7 @@ class App(Tk):
         self.b8.grid(row=8, column=7)
 
     def get_selected_row(self, event):
+        try:
             global selected_tuple
             index = self.list1.curselection()[0]
             selected_tuple = self.list1.get(index)
