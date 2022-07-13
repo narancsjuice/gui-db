@@ -53,21 +53,32 @@ class App(Tk):
         self.l1.grid(row=0, column=0)
         self.t1 = Text(self, height=1, width=15)
         self.t1.grid(row=0, column=1)
-        self.t1.configure(state="disabled")
+
         self.l2 = Label(self, text="Spending", width=15)
         self.l2.grid(row=0, column=2)
         self.t2 = Text(self, height=1, width=15)
         self.t2.grid(row=0, column=3)
-        self.t2.configure(state="disabled")
+
         self.l3 = Label(self, text="Left-over", width=15)
         self.l3.grid(row=0, column=4)
         self.t3 = Text(self, height=1, width=15)
         self.t3.grid(row=0, column=5)
-        self.t3.configure(state="disabled")
+
         self.l4 = Label(self, text="Savings", width=15)
         self.l4.grid(row=0, column=6)
         self.t4 = Text(self, height=1, width=15)
         self.t4.grid(row=0, column=7)
+
+        #TODO: refresh this, maybe move all to function along with state=disabled
+        # also add symbols to lines (?)
+        self.set_value(self.t1, str(backend.sum_income()[0][0]) + " " + self.get_symbol())
+        self.set_value(self.t2, str(backend.sum_spendings()[0][0]) + " " + self.get_symbol())
+        self.set_value(self.t3, str(float(backend.sum_income()[0][0] - backend.sum_spendings()[0][0])) + " " + self.get_symbol())
+        self.set_value(self.t4, str(backend.sum_savings()[0][0]) + " " + self.get_symbol())
+
+        self.t1.configure(state="disabled")
+        self.t2.configure(state="disabled")
+        self.t3.configure(state="disabled")
         self.t4.configure(state="disabled")
 
         # TODO: better listbox with columns
@@ -135,10 +146,23 @@ class App(Tk):
         backend.delete_line(selected_tuple[0])
         self.refresh()
 
+    def get_symbol(self):
+        symbol = backend.view_config()[0][2]
+        return symbol
+
     def refresh(self):
         self.list1.delete(0,END)
         for row in backend.view_lines():
            self.list1.insert(END, row)
+
+    #TODO: set_value does not refresh values, change this later, maybe add new
+    # table to store the values and similarly to refresh just requery
+    def set_value(self, textbox, value):
+        try:
+            textbox.delete(1.0, END)
+            textbox.insert(END, value)
+        except TclError:
+            textbox.insert(END, 0)
 
     #TODO: implement class, add button, and write description
     #def open_about(self):
