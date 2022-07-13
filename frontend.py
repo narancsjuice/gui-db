@@ -73,11 +73,11 @@ class App(Tk):
         # TODO: better listbox with columns
 
         # listbox and scrollbar
-        self.list1 = Listbox(self, height=40, width=120)
+        self.list1 = Listbox(self, height=40, width=120, exportselection=False)
         self.list1.grid(row=1, column=0, rowspan=48, columnspan=6)
 
         # load list items
-        for row in backend.view():
+        for row in backend.view_lines():
             self.list1.insert(END, row)
 
         self.scroll1 = Scrollbar(self)
@@ -85,6 +85,7 @@ class App(Tk):
 
         self.list1.configure(yscrollcommand=self.scroll1.set)
         self.scroll1.configure(command=self.list1.yview)
+        self.list1.bind('<<ListboxSelect>>', self.get_selected_row)
 
         # buttons
         self.b1 = Button(self, text="Configure", width=10, command=self.open_config)
@@ -97,20 +98,21 @@ class App(Tk):
         self.b4.grid(row=4, column=7)
         self.b5 = Button(self, text="Refresh", width=10, command=self.refresh)
         self.b5.grid(row=5, column=7)
+        #TODO: new period function
         self.b6 = Button(self, text="New Month", width=10)
         self.b6.grid(row=6, column=7)
-        self.b7 = Button(self, text="Delete", width=10)
+        self.b7 = Button(self, text="Delete", width=10, command=self.delete)
         self.b7.grid(row=7, column=7)
         self.b8 = Button(self, text="Close", width=10, command=self.destroy)
         self.b8.grid(row=8, column=7)
 
     def get_selected_row(self, event):
-        try:
             global selected_tuple
             index = self.list1.curselection()[0]
             selected_tuple = self.list1.get(index)
         except IndexError:
             pass
+
 
     def open_config(self):
         config_window = Config(self)
@@ -128,15 +130,21 @@ class App(Tk):
         search_window = SearchLineWindow(self)
         search_window.grab_set()
 
+    def delete(self):
+        backend.delete_line(selected_tuple[0])
+        self.refresh()
+
     def refresh(self):
         self.list1.delete(0,END)
-        for row in backend.view():
+        for row in backend.view_lines():
            self.list1.insert(END, row)
 
     #TODO: implement class, add button, and write description
     #def open_about(self):
     #    about_window = AboutWindow(self)
     #    about_window.grab_set()
+
+    #TODO: categories add/update/delete class, button
 
 
 class Config(Toplevel):
@@ -146,6 +154,7 @@ class Config(Toplevel):
         #self.geometry('300x100')
         self.title('Configuration')
         self.cl1 = Label(self, text="Current config")
+        self.cl1.grid(row=0, column=1)
         self.cl1.grid(row=0, column=1)
         self.clb1 = Listbox(self, height=1, width=64)
         self.clb1.grid(row=1, column=1, columnspan=3)
@@ -163,7 +172,8 @@ class Config(Toplevel):
         self.ce1.grid(row=3, column=1)
         self.ce2.grid(row=3, column=2)
         self.ce3.grid(row=3, column=3)
-        self.cb1 = Button(self, text="Update config", width=10, command=self.update_config())
+
+        self.cb1 = Button(self, text="Update config", width=10, command=self.update_config)
         self.cb1.grid(row=4, column=1)
         self.cb2 = Button(self, text="Close", width=10, command=self.destroy)
         self.cb2.grid(row=4, column=2)
@@ -203,7 +213,7 @@ class AddLineWindow(Toplevel):
         self.al1.grid(row=0, column=1)
         self.al2.grid(row=0, column=2)
         self.al3.grid(row=0, column=3)
-        self.ab1 = Button(self, text="Search", width=10)
+        self.ab1 = Button(self, text="Add", width=10, command=self.add)
         self.ab1.grid(row=4, column=1)
         self.ab2 = Button(self, text="Close", width=10, command=self.destroy)
         self.ab2.grid(row=4, column=2)
@@ -212,6 +222,10 @@ class AddLineWindow(Toplevel):
         self.dd1 = OptionMenu(self, self.dd1_value, "1", "2", "3")
         self.dd1.config(width=15, height=1)
         self.dd1.grid(row=1, column=2)
+
+    def add(self):
+        backend.add_line(self.ae1_value.get(), self.ae2_value.get(), self.ae3_value.get())
+        app.refresh()
 
 
 class ModifyLineWindow(Toplevel):
@@ -238,7 +252,7 @@ class ModifyLineWindow(Toplevel):
         self.ml1.grid(row=0, column=1)
         self.ml2.grid(row=0, column=2)
         self.ml3.grid(row=0, column=3)
-        self.mb1 = Button(self, text="Modify", width=10)
+        self.mb1 = Button(self, text="Modify", width=10, command=self.modify)
         self.mb1.grid(row=4, column=1)
         self.mb2 = Button(self, text="Close", width=10, command=self.destroy)
         self.mb2.grid(row=4, column=2)
@@ -257,6 +271,16 @@ class ModifyLineWindow(Toplevel):
     def show_value(self, entry, value):
         entry.delete(0, END)
         entry.insert(END, value)
+
+    #TODO: either: require all fields, or define default to be null so only fields
+    # get modified that are changed by user (amount and category are 0 right now and modify values)
+    def modify(self):
+        print(self.me1_value.get())
+        print(self.me2_value.get())
+        print(self.me3_value.get())
+        print(selected_tuple[0])
+        backend.modify_line(selected_tuple[0], self.me1_value.get(), self.me2_value.get(), self.me3_value.get())
+        app.refresh()
 
 
 class SearchLineWindow(Toplevel):
@@ -292,7 +316,7 @@ class SearchLineWindow(Toplevel):
 
     def search(self):
         app.list1.delete(0,END)
-        for row in backend.search(self.se1_value.get(), self.se2_value.get(), self.se3_value.get()):
+        for row in backend.search_line(self.se1_value.get(), self.se2_value.get(), self.se3_value.get()):
             #TODO: need to search by more than 1 parameter
             # (e.g. category+description does not work) and
             # and fix error messages (missing amount throws error)
