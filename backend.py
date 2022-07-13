@@ -64,8 +64,8 @@ def connect():
     cur.execute("CREATE TABLE IF NOT EXISTS"
                 " account "
                 "(id INTEGER PRIMARY KEY,"
-                " amount DECIMAL(10,2),"
-                " category_id INTEGER,"
+                " amount DECIMAL(10,2) NOT NULL,"
+                " category_id INTEGER NOT NULL,"
                 " description TEXT,"
                 " FOREIGN KEY(category_id) REFERENCES categories(id))")
     con.commit()
@@ -83,7 +83,7 @@ def add_line(amount, category_id, description):
 def view_lines():
     con = sqlite3.connect("personal_finance.db")
     cur = con.cursor()
-    cur.execute("SELECT * FROM account")
+    cur.execute("SELECT id, amount, (SELECT category FROM categories WHERE categories.id=category_id), description FROM account")
     rows = cur.fetchall()
     con.close()
     return rows
@@ -101,7 +101,16 @@ def view_config():
 def view_categories():
     con = sqlite3.connect("personal_finance.db")
     cur = con.cursor()
-    cur.execute("SELECT * FROM categories")
+    cur.execute("SELECT category FROM categories")
+    rows = cur.fetchall()
+    con.close()
+    return rows
+
+
+def get_categoryid(category):
+    con = sqlite3.connect("personal_finance.db")
+    cur = con.cursor()
+    cur.execute("SELECT id FROM categories WHERE category=?", (category,))
     rows = cur.fetchall()
     con.close()
     return rows
@@ -166,8 +175,6 @@ def sum_savings():
     rows = cur.fetchall()
     con.close()
     return rows
-
-#TODO: add/remove/update categories backend code
 
 
 connect()
