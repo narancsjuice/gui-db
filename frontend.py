@@ -125,7 +125,6 @@ class App(Tk):
         except IndexError:
             pass
 
-
     def open_config(self):
         config_window = Config(self)
         config_window.grab_set()
@@ -135,6 +134,9 @@ class App(Tk):
         addline_window.grab_set()
 
     def open_modifyline(self):
+        #TODO: modify window should not open if no row is selected
+        # or should not show values already deleted (delete value -> open shows
+        # already deleted values on modify window)
         modify_window = ModifyLineWindow(self)
         modify_window.grab_set()
 
@@ -143,8 +145,11 @@ class App(Tk):
         search_window.grab_set()
 
     def delete(self):
-        backend.delete_line(selected_tuple[0])
-        self.refresh()
+        try:
+            backend.delete_line(selected_tuple[0])
+            self.refresh()
+        except NameError:
+            pass
 
     def get_symbol(self):
         symbol = backend.view_config()[0][2]
@@ -168,8 +173,6 @@ class App(Tk):
     #def open_about(self):
     #    about_window = AboutWindow(self)
     #    about_window.grab_set()
-
-    #TODO: categories add/update/delete class, button
 
 
 class Config(Toplevel):
@@ -216,7 +219,6 @@ class Config(Toplevel):
         entry.delete(0, END)
         entry.insert(END, value)
 
-
 class AddLineWindow(Toplevel):
     def __init__(self, parent):
         super().__init__(parent)
@@ -242,14 +244,18 @@ class AddLineWindow(Toplevel):
         self.ab1.grid(row=4, column=1)
         self.ab2 = Button(self, text="Close", width=10, command=self.destroy)
         self.ab2.grid(row=4, column=2)
-        self.dd1_value = IntVar(self)
-        self.dd1_value.set("default")
-        self.dd1 = OptionMenu(self, self.dd1_value, "1", "2", "3")
+
+        dd_list = list(backend.view_categories())
+        self.dd1_value = StringVar(self)
+        self.dd1_value.set(dd_list[0])
+        self.dd1 = OptionMenu(self, self.dd1_value, *dd_list)
         self.dd1.config(width=15, height=1)
         self.dd1.grid(row=1, column=2)
 
     def add(self):
-        backend.add_line(self.ae1_value.get(), self.ae2_value.get(), self.ae3_value.get())
+        category = self.dd1_value.get()[2:-3]
+        category_id = backend.get_categoryid(category)[0][0]
+        backend.add_line(self.ae1_value.get(), category_id, self.ae3_value.get())
         app.refresh()
 
 
@@ -281,31 +287,32 @@ class ModifyLineWindow(Toplevel):
         self.mb1.grid(row=4, column=1)
         self.mb2 = Button(self, text="Close", width=10, command=self.destroy)
         self.mb2.grid(row=4, column=2)
-        self.dd1_value = IntVar(self)
-        self.dd1_value.set("default")
-        self.dd1 = OptionMenu(self, self.dd1_value, "1", "2", "3")
+
+        self.dd1_value = StringVar(self)
+        self.dd1_value.set(selected_tuple[2])
+        self.dd1 = OptionMenu(self, self.dd1_value, *self.create_dropdown())
         self.dd1.config(width=15, height=1)
         self.dd1.grid(row=1, column=2)
 
     #TODO: either: require all fields, or define default to be null so only fields
     # get modified that are changed by user (amount and category are 0 right now and modify values)
     def modify(self):
-        backend.modify_line(selected_tuple[0], self.me1_value.get(), self.me2_value.get(), self.me3_value.get())
+        category = self.dd1_value.get()
+        category_id = backend.get_categoryid(category)[0][0]
+        backend.modify_line(selected_tuple[0], self.me1_value.get(), category_id, self.me3_value.get())
         app.refresh()
+
+    def create_dropdown(self):
+        dropdown_list = []
+        categories_list = backend.view_categories()
+        for category in categories_list:
+            category = category[0]
+            dropdown_list.append(category)
+        return dropdown_list
 
     def show_value(self, entry, value):
         entry.delete(0, END)
         entry.insert(END, value)
-
-    #TODO: either: require all fields, or define default to be null so only fields
-    # get modified that are changed by user (amount and category are 0 right now and modify values)
-    def modify(self):
-        print(self.me1_value.get())
-        print(self.me2_value.get())
-        print(self.me3_value.get())
-        print(selected_tuple[0])
-        backend.modify_line(selected_tuple[0], self.me1_value.get(), self.me2_value.get(), self.me3_value.get())
-        app.refresh()
 
 
 class SearchLineWindow(Toplevel):
@@ -334,6 +341,7 @@ class SearchLineWindow(Toplevel):
         self.sb2 = Button(self, text="Close", width=10, command=self.destroy)
         self.sb2.grid(row=4, column=2)
         self.dd1_value = IntVar(self)
+
         self.dd1_value.set("default")
         self.dd1 = OptionMenu(self, self.dd1_value, "1", "2", "3")
         self.dd1.config(width=15, height=1)
