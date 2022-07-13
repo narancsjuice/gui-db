@@ -104,6 +104,14 @@ class App(Tk):
         self.b8 = Button(self, text="Close", width=10, command=self.destroy)
         self.b8.grid(row=8, column=7)
 
+    def get_selected_row(self, event):
+        try:
+            global selected_tuple
+            index = self.list1.curselection()[0]
+            selected_tuple = self.list1.get(index)
+        except IndexError:
+            pass
+
     def open_config(self):
         config_window = Config(self)
         config_window.grab_set()
@@ -146,17 +154,32 @@ class Config(Toplevel):
         self.ce1_value = StringVar()
         self.ce2_value = StringVar()
         self.ce3_value = IntVar()
-        #TODO: add default or labels for entry textboxes
         self.ce1 = Entry(self, textvariable=self.ce1_value)
         self.ce2 = Entry(self, textvariable=self.ce2_value)
         self.ce3 = Entry(self, textvariable=self.ce3_value)
+        self.show_value(self.ce1, backend.view_config()[0][1])
+        self.show_value(self.ce2, backend.view_config()[0][2])
+        self.show_value(self.ce3, backend.view_config()[0][3])
         self.ce1.grid(row=3, column=1)
         self.ce2.grid(row=3, column=2)
         self.ce3.grid(row=3, column=3)
-        self.cb1 = Button(self, text="Update config", width=10)
+        self.cb1 = Button(self, text="Update config", width=10, command=self.update_config())
         self.cb1.grid(row=4, column=1)
         self.cb2 = Button(self, text="Close", width=10, command=self.destroy)
         self.cb2.grid(row=4, column=2)
+
+        for row in backend.view_config():
+            self.clb1.insert(END, row)
+
+    def update_config(self):
+        backend.modify_config(self.ce1_value.get(), self.ce2_value.get(), self.ce3_value.get())
+        self.clb1.delete(0,END)
+        for row in backend.view_config():
+            self.clb1.insert(END, row)
+
+    def show_value(self, entry, value):
+        entry.delete(0, END)
+        entry.insert(END, value)
 
 
 class AddLineWindow(Toplevel):
@@ -169,13 +192,13 @@ class AddLineWindow(Toplevel):
         self.ae2_value = IntVar()
         self.ae3_value = StringVar()
         self.ae1 = Entry(self, textvariable=self.ae1_value)
-        self.ae2 = Entry(self, textvariable=self.ae2_value)
+        #self.ae2 = Entry(self, textvariable=self.ae2_value)
         self.ae3 = Entry(self, textvariable=self.ae3_value)
         self.al1 = Label(self, text="Amount")
         self.al2 = Label(self, text="Category")
         self.al3 = Label(self, text="Description")
         self.ae1.grid(row=1, column=1)
-        self.ae2.grid(row=1, column=2)
+        #self.ae2.grid(row=1, column=2)
         self.ae3.grid(row=1, column=3)
         self.al1.grid(row=0, column=1)
         self.al2.grid(row=0, column=2)
@@ -184,6 +207,11 @@ class AddLineWindow(Toplevel):
         self.ab1.grid(row=4, column=1)
         self.ab2 = Button(self, text="Close", width=10, command=self.destroy)
         self.ab2.grid(row=4, column=2)
+        self.dd1_value = IntVar(self)
+        self.dd1_value.set("default")
+        self.dd1 = OptionMenu(self, self.dd1_value, "1", "2", "3")
+        self.dd1.config(width=15, height=1)
+        self.dd1.grid(row=1, column=2)
 
 
 class ModifyLineWindow(Toplevel):
@@ -196,13 +224,16 @@ class ModifyLineWindow(Toplevel):
         self.me2_value = IntVar()
         self.me3_value = StringVar()
         self.me1 = Entry(self, textvariable=self.me1_value)
-        self.me2 = Entry(self, textvariable=self.me2_value)
+        #self.me2 = Entry(self, textvariable=self.me2_value)
         self.me3 = Entry(self, textvariable=self.me3_value)
+        self.show_value(self.me1, selected_tuple[1])
+        #self.show_value(self.me2, selected_tuple[2])
+        self.show_value(self.me3, selected_tuple[3])
         self.ml1 = Label(self, text="Amount")
         self.ml2 = Label(self, text="Category")
         self.ml3 = Label(self, text="Description")
         self.me1.grid(row=1, column=1)
-        self.me2.grid(row=1, column=2)
+        #self.me2.grid(row=1, column=2)
         self.me3.grid(row=1, column=3)
         self.ml1.grid(row=0, column=1)
         self.ml2.grid(row=0, column=2)
@@ -211,6 +242,21 @@ class ModifyLineWindow(Toplevel):
         self.mb1.grid(row=4, column=1)
         self.mb2 = Button(self, text="Close", width=10, command=self.destroy)
         self.mb2.grid(row=4, column=2)
+        self.dd1_value = IntVar(self)
+        self.dd1_value.set("default")
+        self.dd1 = OptionMenu(self, self.dd1_value, "1", "2", "3")
+        self.dd1.config(width=15, height=1)
+        self.dd1.grid(row=1, column=2)
+
+    #TODO: either: require all fields, or define default to be null so only fields
+    # get modified that are changed by user (amount and category are 0 right now and modify values)
+    def modify(self):
+        backend.modify_line(selected_tuple[0], self.me1_value.get(), self.me2_value.get(), self.me3_value.get())
+        app.refresh()
+
+    def show_value(self, entry, value):
+        entry.delete(0, END)
+        entry.insert(END, value)
 
 
 class SearchLineWindow(Toplevel):
@@ -223,13 +269,13 @@ class SearchLineWindow(Toplevel):
         self.se2_value = IntVar()
         self.se3_value = StringVar()
         self.se1 = Entry(self, textvariable=self.se1_value)
-        self.se2 = Entry(self, textvariable=self.se2_value)
+        #self.se2 = Entry(self, textvariable=self.se2_value)
         self.se3 = Entry(self, textvariable=self.se3_value)
         self.sl1 = Label(self, text="Amount")
         self.sl2 = Label(self, text="Category")
         self.sl3 = Label(self, text="Description")
         self.se1.grid(row=1, column=1)
-        self.se2.grid(row=1, column=2)
+        #self.se2.grid(row=1, column=2)
         self.se3.grid(row=1, column=3)
         self.sl1.grid(row=0, column=1)
         self.sl2.grid(row=0, column=2)
@@ -238,6 +284,11 @@ class SearchLineWindow(Toplevel):
         self.sb1.grid(row=4, column=1)
         self.sb2 = Button(self, text="Close", width=10, command=self.destroy)
         self.sb2.grid(row=4, column=2)
+        self.dd1_value = IntVar(self)
+        self.dd1_value.set("default")
+        self.dd1 = OptionMenu(self, self.dd1_value, "1", "2", "3")
+        self.dd1.config(width=15, height=1)
+        self.dd1.grid(row=1, column=2)
 
     def search(self):
         app.list1.delete(0,END)
